@@ -1,3 +1,19 @@
+"""
+streamlit_app.py
+---------------
+Main entrypoint for the Streamlit UI of the AI-Bike-Coach platform.
+
+Responsibilities:
+- Provide sidebar navigation for Dashboard, Ride Explorer, and Chat tabs.
+- Route to the appropriate UI module based on user selection.
+- Initialize Streamlit app configuration.
+
+TODO:
+- Integrate chat agent for the Chat tab.
+- Add user authentication/session state.
+- Improve navigation and add more UI features as backend matures.
+"""
+
 # Placeholder for Streamlit UI multipage app
 import streamlit as st
 from ui import dashboard, ride_explorer

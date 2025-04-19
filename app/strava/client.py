@@ -1,20 +1,26 @@
-# strava/client.py: Strava API client wrapper
-from urllib.parse import urlencode
+"""
+client.py
+---------
+Strava API client wrapper for the AI-Bike-Coach backend.
+
+Responsibilities:
+- Provide a configured stravalib Client instance for Strava API calls.
+- Handle access token assignment and client credentials.
+- Used by Strava sync tasks and webhook handlers.
+
+TODO:
+- Add automatic token refresh logic.
+- Add error handling for API failures.
+- Support additional Strava endpoints as needed.
+"""
+
+from stravalib import Client
 from app.config import settings
 
-STRAVA_AUTHORIZE_URL = "https://www.strava.com/oauth/authorize"
-
-class StravaClient:
-    def get_authorize_url(self, scope=["activity:read_all"]):
-        params = {
-            "client_id": settings.STRAVA_CLIENT_ID,
-            "response_type": "code",
-            "redirect_uri": "http://localhost:8000/strava/auth/redirect",  # TODO: Make configurable
-            "approval_prompt": "auto",
-            "scope": ",".join(scope),
-        }
-        return f"{STRAVA_AUTHORIZE_URL}?{urlencode(params)}"
-
-    # TODO: Add methods for token refresh, activity fetch, etc.
-
-strava_client = StravaClient()
+def get_client(access_token:str|None=None):
+    client = Client()
+    if access_token:
+        client.token = access_token
+    client.client_id = settings.STRAVA_CLIENT_ID
+    client.client_secret = settings.STRAVA_CLIENT_SECRET
+    return client
