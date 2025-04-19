@@ -185,6 +185,8 @@ def main():
         st.info("Upload a GPX file via the sidebar to get started.")
         st.stop()
 
+    
+
     df = parse_gpx(gpx_file)
     # --- Derived metrics for mapping ---
     df["time_diff_s"] = df.index.to_series().diff().dt.total_seconds()
@@ -200,21 +202,32 @@ def main():
 
     # --- Summary metrics ---
     st.subheader("Ride summary")
-    cols1, cols2, cols3, cols4 = st.columns(4)
+    cols1, cols2, cols3, cols4, cols5, cols6 = st.columns(6)
     total_km = df["cum_dist_km"].iloc[-1]
     total_mi = total_km * 0.621371
+    elev_gain_m = df["elevation"].diff().clip(lower=0).sum()
+    elev_gain_ft = elev_gain_m * 3.28084
     duration_td = df.index[-1] - df.index[0]
     total_seconds = int(duration_td.total_seconds())
     hours = total_seconds // 3600
     minutes = (total_seconds % 3600) // 60
     duration_str = f"{hours}h {minutes:02d}m"
-    # cols1.metric("Distance (km)", f"{total_km:.2f}")
+    np_val = None
+    if df["power"].notna().any():
+        # 30‑second rolling mean, then 4th‑power average & 4th root
+        p30 = df["power"].rolling("30s").mean()
+        if p30.dropna().any():
+            np_val = (p30.dropna() ** 4).mean() ** 0.25
+
     cols1.metric("Distance (mi)", f"{total_mi:.2f}")
     cols2.metric("Duration", duration_str)
+    cols3.metric("Elev Gain (ft)", f"{elev_gain_ft:,.0f}")
     if df["power"].notna().any():
-        cols3.metric("Avg Power (W)", f"{df['power'].mean():.0f}")
+        cols4.metric("Avg Power (W)", f"{df['power'].mean():.0f}")
+    if np_val is not None:
+        cols5.metric("Normalized Power (W)", f"{np_val:.0f}")
     if df["heart_rate"].notna().any():
-        cols4.metric("Avg HR (bpm)", f"{df['heart_rate'].mean():.0f}")
+        cols6.metric("Avg HR (bpm)", f"{df['heart_rate'].mean():.0f}")
 
     # --- Map with color‑coded route ---
     st.subheader("Route map")
@@ -237,7 +250,7 @@ def main():
     map_params = dict(
         lat="latitude",
         lon="longitude",
-        zoom=10,
+        zoom=10.5,
         height=600,
         hover_data={"speed_mph": True, "grade_pct": True, "heart_rate": True, "power": True},
     )

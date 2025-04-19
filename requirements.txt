@@ -1,0 +1,16 @@
+# requirements.txt: Pin all required libraries
+fastapi
+uvicorn
+pydantic
+sqlalchemy
+asyncpg
+stravalib
+celery
+redis
+langchain
+openai
+streamlit
+plotly
+pandas
+numpy
+timescale
