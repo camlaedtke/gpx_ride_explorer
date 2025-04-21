@@ -93,7 +93,7 @@ ai-bike-coach/
 |-------|--------|------|-----------------|---------------------|
 | 0.1 | ✅ | Local environment boots | docker-compose up starts Postgres, Redis; FastAPI /health endpoint | Containers build without error; DB migrations run; /health returns {"status":"ok"} |
 | 0.2 | ✅ | Strava OAuth handshake | /auth/login redirect; /auth/callback stores tokens in users table | After manual grant, access/refresh tokens appear in DB and can be refreshed |
-| 0.3 | ❌ | Manual activity pull | CLI or API sync_initial(user_id) populates activities and streams for last 30 days | 30 days of rides visible via SQL query; at least one streams row per ride |
+| 0.3 | ✅ | Manual activity pull | CLI or API sync_initial(user_id) populates activities and streams for last 30 days | 30 days of rides visible via SQL query; at least one streams row per ride |
 | 0.4 | ❌ | Webhook → worker pipeline | Strava webhook hits FastAPI, Celery fetches new ride, stores to DB | Finishing a new ride on Strava inserts activity & stream rows within 1 minute |
 | 0.5 | ❌ | Streamlit Ride Explorer tab hooked to DB | Existing GPX viewer adapted to query DB for a selected activity | Selecting a ride renders map + charts directly from DB data |
 | 0.6 | ❌ | Analytics engine v1 | Daily Celery task calculates TSS; calculates CTL/ATL/TSB & stores results | Dashboard shows CTL vs ATL vs TSB plotted for last 90 days |

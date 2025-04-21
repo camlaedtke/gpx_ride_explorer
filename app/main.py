@@ -20,6 +20,7 @@ from fastapi import FastAPI
 from .config import settings
 from .strava.webhook import router as strava_webhook_router
 from .strava.routes import router as strava_auth_router
+from .strava.sync_routes import router as strava_sync_router
 from .db.session import engine
 from .db import models
 
@@ -30,6 +31,9 @@ app.include_router(strava_webhook_router, prefix="/strava")
 
 # Register Strava auth endpoints
 app.include_router(strava_auth_router, prefix="/auth")
+
+# Register Strava sync endpoints
+app.include_router(strava_sync_router, prefix="/sync")
 
 @app.get("/")
 def root():
