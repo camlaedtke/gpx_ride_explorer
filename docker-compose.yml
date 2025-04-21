@@ -3,7 +3,7 @@ version: '3.8'
 services:
   api:
     build: .
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
     env_file:
@@ -11,6 +11,8 @@ services:
     depends_on:
       - db
       - redis
+    volumes:
+      - .:/app
   worker:
     build: .
     command: celery -A app.strava.sync worker --loglevel=info
@@ -19,6 +21,8 @@ services:
     depends_on:
       - db
       - redis
+    volumes:
+      - .:/app
   ui:
     build: .
     command: streamlit run ui/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
@@ -28,12 +32,14 @@ services:
       - .env
     depends_on:
       - api
+    volumes:
+      - .:/app
   redis:
     image: redis:7
     ports:
       - "6379:6379"
   db:
-    image: timescale/timescaledb-postgis:latest-pg14
+    image: timescale/timescaledb:latest-pg14
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

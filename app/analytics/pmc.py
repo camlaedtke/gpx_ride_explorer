@@ -9,25 +9,35 @@ Responsibilities:
 - Used by Celery tasks and the dashboard UI.
 
 TODO:
-- Complete recalc_metrics_for_activity to update daily metrics in the database.
 - Add more analytics (e.g., MMP, PR detection) as needed.
 - Optimize for large user/activity datasets.
 """
 
 import numpy as np
 import pandas as pd
+from celery import Celery
 from app.db.session import SessionLocal
-from app.db.models import Activity
+from app.db.models import Activity, User
+
+celery = Celery(__name__, broker="redis://redis:6379/0")
 
 def calc_ctl_atl(tss_series: pd.Series, tau:int):
     # simple EWMA implementation
     return tss_series.ewm(alpha=1/tau, adjust=False).mean()
 
-def recalc_metrics_for_activity(activity_id:str):
+@celery.task
+def recalc_metrics_for_activity(user_id:str, strava_activity_id:int):
     """
     Rebuild CTL/ATL/TSB for the user of this activity.
     Called after new ride ingested.
     """
     db = SessionLocal()
-    # pull all activities with date, tss
-    # compute ctl/atl, write back daily snapshot table
+    try:
+        # This is a stub implementation for Phase 0.1
+        # In future phases, we'll:
+        # 1. Pull all activities with date and TSS for the user
+        # 2. Compute CTL/ATL/TSB
+        # 3. Write back to a daily snapshot table
+        print(f"Recalculating metrics for user {user_id}, activity {strava_activity_id}")
+    finally:
+        db.close()

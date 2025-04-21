@@ -14,10 +14,11 @@ TODO:
 - Consider splitting secrets and non-secrets if security requirements increase.
 """
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     DATABASE_URL: str
+    SUPABASE_URL: str
     SUPABASE_ANON_KEY: str
     STRAVA_CLIENT_ID: str
     STRAVA_CLIENT_SECRET: str
