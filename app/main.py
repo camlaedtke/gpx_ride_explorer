@@ -9,7 +9,7 @@ Responsibilities:
 - Provide a root endpoint for health/status checks.
 
 TODO:
-- Add routers for authentication, analytics, agent, and other modules as they are implemented.
+- Add routers for analytics, agent, and other modules as they are implemented.
 - Implement global exception handlers and middleware if needed.
 - Add OpenAPI/Swagger customization if required.
 - Integrate logging and monitoring.
@@ -19,6 +19,7 @@ TODO:
 from fastapi import FastAPI
 from .config import settings
 from .strava.webhook import router as strava_webhook_router
+from .strava.routes import router as strava_auth_router
 from .db.session import engine
 from .db import models
 
@@ -26,6 +27,9 @@ app = FastAPI(title="AI-Bike-Coach API")
 
 # Register Strava webhook endpoints
 app.include_router(strava_webhook_router, prefix="/strava")
+
+# Register Strava auth endpoints
+app.include_router(strava_auth_router, prefix="/auth")
 
 @app.get("/")
 def root():
@@ -38,4 +42,4 @@ def health():
 # Create DB tables on startup if they don't exist
 models.Base.metadata.create_all(bind=engine)
 
-# TODO: Add more routers (auth, analytics, agent, etc.)
+# TODO: Add more routers (analytics, agent, etc.)
