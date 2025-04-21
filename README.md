@@ -56,36 +56,45 @@ A full-stack, cloud-hosted platform for cyclists that syncs Strava rides, comput
 
 # Directory & File Responsibilities
 
-ai-bike-coach/
-├─ app/                 # service layer
-│  ├─ main.py           # FastAPI app factory, routers include auth, webhook, health
-│  ├─ config.py         # Pydantic Settings, loads env (.env or secrets manager)
-│  ├─ db/
-│  │  ├─ models.py      # SQLAlchemy ORM + Timescale raw SQL
-│  │  ├─ session.py     # engine + SessionLocal factory
-│  │  └─ migrations/    # Alembic versions
-│  ├─ strava/
-│  │  ├─ client.py      # stravalib wrapper, get_client() auto‑refresh
-│  │  ├─ routes.py      # /auth/login, /auth/callback endpoints
-│  │  ├─ webhook.py     # /webhook GET verify + POST event
-│  │  └─ sync.py        # Celery tasks: bulk_sync, fetch_activity
-│  ├─ analytics/
-│  │  ├─ pmc.py         # calc_tss, update_ctl_atl_tsb
-│  │  └─ pr.py          # update_mmp, check_new_prs
-│  └─ agent/
-│     ├─ tools.py       # LangChain SQLDatabase tool + helper functions
-│     └─ chat_agent.py  # initialise agent, answer(query)
-├─ worker/              # celery entrypoint
-│  └─ worker.py
-├─ ui/
-│  ├─ streamlit_app.py  # sidebar nav; st.session_state user_id
-│  ├─ dashboard.py      # CTL/ATL/TSB plots, PR tables
-│  ├─ ride_explorer.py  # Activity selector, map + charts (adapted GPX explorer)
-│  └─ chat_page.py      # Streamlit chat with agent.answer()
-├─ Dockerfile           # multi‑stage build: base -> fastapi+worker -> streamlit
-├─ docker-compose.yml   # services: api, worker, ui, redis, db
-├─ requirements.txt
-└─ README.md
+```
+gpx_ride_explorer/
+├── app/                 # Service layer
+│   ├── main.py           # FastAPI app factory, routers include auth, webhook, health
+│   ├── config.py         # Pydantic Settings, loads env (.env or secrets manager)
+│   ├── db/
+│   │   ├── models.py      # SQLAlchemy ORM + Timescale raw SQL
+│   │   ├── session.py     # engine + SessionLocal factory
+│   │   └── migrations/    # Alembic versions
+│   │       ├── env.py
+│   │       ├── script.py.mako
+│   │       └── versions/
+│   │           └── 42be22a75f1c_initial_migration.py
+│   ├── strava/
+│   │   ├── client.py      # stravalib wrapper, get_client() auto‑refresh
+│   │   ├── routes.py      # /auth/login, /auth/callback endpoints
+│   │   ├── sync_routes.py # Sync routes endpoints
+│   │   ├── sync.py        # Celery tasks: bulk_sync, fetch_activity
+│   │   └── webhook.py     # /webhook GET verify + POST event
+│   ├── analytics/
+│   │   └── pmc.py         # calc_tss, update_ctl_atl_tsb
+│   └── agent/
+│       ├── tools.py       # LangChain SQLDatabase tool + helper functions
+│       └── chat_agent.py  # initialise agent, answer(query)
+├── ui/
+│   ├── streamlit_app.py   # sidebar nav; st.session_state user_id
+│   ├── dashboard.py       # CTL/ATL/TSB plots, PR tables
+│   └── ride_explorer.py   # Activity selector, map + charts
+├── data/
+│   ├── 2x15.gpx          # Example GPX file
+│   └── Morning_Ride.gpx   # Example GPX file
+├── Dockerfile            # multi‑stage build: base -> fastapi+worker -> streamlit
+├── docker-compose.yml    # services: api, worker, ui, redis, db
+├── alembic.ini           # Alembic configuration
+├── run_api.py            # API entry point
+├── gpx_ride_explorer_app.py # Main application entry point
+├── requirements.txt      # Python dependencies
+└── README.md
+```
 
 ## Development Roadmap
 
@@ -101,10 +110,11 @@ ai-bike-coach/
 | 0.8 | ❌ | LangChain SQL agent | Chat tab answers questions by querying DB via agent | Query "What was my CTL yesterday?" returns correct numeric value (±1) |
 | 1.0 | ❌ | MVP deployed | CI/CD builds images; Render/Railway stack with HTTPS | Same functionality accessible publicly; OAuth & webhook work end-to-end |
 
-Tips
-	•	Implement end‑to‑end "happy path" early: OAuth → one activity → Streamlit viewer.
-	•	Use fake Strava export (sample.fit → convert to GPX) in tests to avoid hitting rate limits during CI.
-	•	Write Alembic migrations once models stabilize; run with alembic upgrade head in docker-compose up.
-	•	Protect the webhook endpoint with Strava's X‑Strava‑Signature header check.
-	•	In Celery, batch‑insert stream rows with COPY or execute_values for speed (Strava streams can be 10 000+ rows per ride).
-	•	Cache CTL/ATL queries in Supabase's daily_metrics table to keep Streamlit snappy.
+## Development Tips
+
+- Implement end-to-end "happy path" early: OAuth → one activity → Streamlit viewer
+- Use fake Strava export (sample.fit → convert to GPX) in tests to avoid hitting rate limits during CI
+- Write Alembic migrations once models stabilize; run with `alembic upgrade head` in docker-compose up
+- Protect the webhook endpoint with Strava's X-Strava-Signature header check
+- In Celery, batch-insert stream rows with COPY or execute_values for speed (Strava streams can be 10,000+ rows per ride)
+- Cache CTL/ATL queries in Supabase's daily_metrics table to keep Streamlit snappy
