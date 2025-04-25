@@ -16,7 +16,8 @@ TODO:
 
 # Placeholder for Streamlit UI multipage app
 import streamlit as st
-from ui import dashboard, ride_explorer
+# Modified import statement for better compatibility within Docker container
+import dashboard, ride_explorer
 
 st.set_page_config(page_title="AI-Bike-Coach", layout="wide")
 

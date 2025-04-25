@@ -19,6 +19,7 @@ import streamlit as st
 import requests
 import pandas as pd
 import json
+from datetime import datetime, timezone
 
 def show():
     st.header("Dashboard")
@@ -48,6 +49,55 @@ def show():
                 st.error(f"❌ API root endpoint returned status code {response.status_code}")
         except requests.exceptions.RequestException as e:
             st.error(f"❌ Cannot connect to API root: {e}")
+    
+    # Webhook Status Section
+    st.subheader("Strava Webhook Status")
+    
+    # Try to fetch webhook subscriptions
+    try:
+        # Get User Info (to get the Strava Athlete ID)
+        user_response = requests.get("http://api:8000/auth/user-info", timeout=2)
+        
+        if user_response.status_code == 200:
+            user_info = user_response.json()
+            strava_athlete_id = user_info.get('strava_athlete_id')
+            
+            st.info(f"Connected Strava account: Athlete ID {strava_athlete_id}")
+            
+            # Webhook test form
+            with st.expander("Test Webhook", expanded=False):
+                st.write("Simulate a Strava webhook event for testing")
+                
+                # Form to test the webhook
+                with st.form("webhook_test_form"):
+                    activity_id = st.number_input("Strava Activity ID", min_value=1, value=12345678)
+                    submitted = st.form_submit_button("Simulate Event")
+                    
+                    if submitted:
+                        try:
+                            payload = {
+                                "strava_activity_id": int(activity_id),
+                                "strava_athlete_id": strava_athlete_id
+                            }
+                            webhook_response = requests.post(
+                                "http://api:8000/strava/webhook-test", 
+                                json=payload,
+                                timeout=5
+                            )
+                            
+                            if webhook_response.status_code == 200:
+                                result = webhook_response.json()
+                                st.success(f"✅ {result.get('message', 'Event processed!')}")
+                                st.code(json.dumps(result, indent=2))
+                            else:
+                                st.error(f"❌ Failed to process webhook test: {webhook_response.status_code}")
+                                st.code(webhook_response.text)
+                        except Exception as e:
+                            st.error(f"❌ Error testing webhook: {str(e)}")
+        else:
+            st.warning("⚠️ Not connected to Strava. Please log in first.")
+    except Exception as e:
+        st.error(f"❌ Error checking webhook status: {str(e)}")
     
     # Placeholder for future dashboard components
     st.subheader("Coming Soon")

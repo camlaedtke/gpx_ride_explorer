@@ -126,3 +126,26 @@ async def auth_success():
     Simple success page confirming successful authentication.
     """
     return {"message": "Successfully authenticated with Strava!"}
+
+@router.get("/user-info")
+async def get_user_info(db: Session = Depends(get_db)):
+    """
+    Get information about the authenticated user.
+    In a real app, this would use proper authentication.
+    For now, we'll just return the most recently authenticated user.
+    """
+    try:
+        # For simplicity, get the most recently authenticated user
+        user = db.query(User).order_by(User.token_expires_at.desc()).first()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="No authenticated user found")
+        
+        return {
+            "user_id": str(user.id),
+            "strava_athlete_id": user.strava_athlete_id,
+            "authenticated": True,
+            "token_expires_at": user.token_expires_at.isoformat() if user.token_expires_at else None
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving user info: {str(e)}")

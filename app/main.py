@@ -21,6 +21,7 @@ from .config import settings
 from .strava.webhook import router as strava_webhook_router
 from .strava.routes import router as strava_auth_router
 from .strava.sync_routes import router as strava_sync_router
+from .strava.activities import router as activities_router
 from .db.session import engine
 from .db import models
 
@@ -34,6 +35,9 @@ app.include_router(strava_auth_router, prefix="/auth")
 
 # Register Strava sync endpoints
 app.include_router(strava_sync_router, prefix="/sync")
+
+# Register activities endpoints
+app.include_router(activities_router)
 
 @app.get("/")
 def root():
